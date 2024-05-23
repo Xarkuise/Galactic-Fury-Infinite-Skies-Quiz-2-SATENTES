@@ -4,10 +4,12 @@ export default class gameoverScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load assets like background image and buttons
+        // Load assets like background image, buttons, and audio
         this.load.image('gameoverbackground', './assets/images/gameoverBackground.png');
         this.load.image('restartButton', './assets/images/reset.png');
         this.load.image('mainMenuButton', './assets/images/main.png');
+        
+        this.load.audio('gameoverSound', './assets/audio/gameoverSound.mp3'); // Replace 'gameoverSound' with your audio file
     }
     
     create(data) {
@@ -29,6 +31,7 @@ export default class gameoverScene extends Phaser.Scene {
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         restartButton.on('pointerdown', () => {
+            this.sound.stopAll(); // Stop all sounds before restarting
             this.scene.start('gameScene'); // Restart the game
         });
     
@@ -37,7 +40,12 @@ export default class gameoverScene extends Phaser.Scene {
         mainMenuButton.setOrigin(0.5);
         mainMenuButton.setInteractive();
         mainMenuButton.on('pointerdown', () => {
+            this.sound.stopAll(); // Stop all sounds before going back to the title scene
             this.scene.start('titleScene'); // Go back to the title scene
         });
+
+        // Play game over sound
+        const gameoverSound = this.sound.add('gameoverSound');
+        gameoverSound.play();
     }
 }
