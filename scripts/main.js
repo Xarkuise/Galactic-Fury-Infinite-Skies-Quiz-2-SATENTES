@@ -1,7 +1,9 @@
 import titleScene from './scenes/titleScene.js';
 import gameScene from './scenes/gameScene.js';
 import creditScene from './scenes/creditScene.js';
+import winningScene from './scenes/winningScene.js';
 import gameoverScene from './scenes/gameoverScene.js';
+
 
 var config = {
     type: Phaser.AUTO,
@@ -14,7 +16,7 @@ var config = {
             debug: false
         }
     },
-    scene: [titleScene, gameScene, creditScene, gameoverScene]
+    scene: [titleScene, gameScene, creditScene, winningScene, gameoverScene ]
      
 };
 

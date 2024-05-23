@@ -11,7 +11,8 @@ export default class gameoverScene extends Phaser.Scene {
     }
     
     create(data) {
-        const score = data.score; // Access the score from data
+        const { score, timeSurvived } = data;
+
         // Add background image
         this.add.image(0, 0, 'gameoverbackground').setOrigin(0, 0).setDisplaySize(this.cameras.main.width, this.cameras.main.height);
     
@@ -19,13 +20,12 @@ export default class gameoverScene extends Phaser.Scene {
         this.add.text(this.cameras.main.width / 2, 100, 'Game Over', { fontSize: '64px', fontFamily: 'Orbitron', fill: '#D1128F', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5);
     
         // Display score
-        this.add.text(this.cameras.main.width / 2, 200, 'Star Collected: ' + score, { fontSize: '32px', fontFamily: 'Orbitron', fill: '#D1128F', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5);
+        this.add.text(this.cameras.main.width / 2, 200, 'Score: ' + score, { fontSize: '32px', fontFamily: 'Orbitron', fill: '#D1128F', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5);
         
-        this.add.text(this.cameras.main.width / 2, 250, 'Score: ' + score * 100, { fontSize: '32px', fontFamily: 'Orbitron', fill: '#D1128F', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5);
+        this.add.text(this.cameras.main.width / 2, 250, 'Time Survived: ' + timeSurvived + "s", { fontSize: '32px', fontFamily: 'Orbitron', fill: '#D1128F', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5);
 
-        
         // Add restart button
-        const restartButton = this.add.image(this.cameras.main.width / 2, 300, 'restartButton')
+        const restartButton = this.add.image(this.cameras.main.width / 2, 600, 'restartButton')
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         restartButton.on('pointerdown', () => {
@@ -33,11 +33,11 @@ export default class gameoverScene extends Phaser.Scene {
         });
     
         // Add main menu button
-        const mainMenuButton = this.add.image(this.cameras.main.width / 2, 350, 'mainMenuButton')
+        const mainMenuButton = this.add.image(this.cameras.main.width / 2, 750, 'mainMenuButton')
         mainMenuButton.setOrigin(0.5);
         mainMenuButton.setInteractive();
         mainMenuButton.on('pointerdown', () => {
-            this.scene.start('titlescene'); // Go back to the title scene
+            this.scene.start('titleScene'); // Go back to the title scene
         });
     }
 }

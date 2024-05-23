@@ -36,7 +36,7 @@ export default class creditScene extends Phaser.Scene {
     }
 
     Back() {
-        // Stop background music when transitioning back to the title scene
+        // Stop credit scene's background music when transitioning back to the title scene
         const backgroundMusic = this.sound.get('backgroundMusic');
         if (backgroundMusic && backgroundMusic.isPlaying) {
             backgroundMusic.stop();

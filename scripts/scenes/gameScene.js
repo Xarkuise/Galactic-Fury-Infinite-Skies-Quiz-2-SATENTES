@@ -1,201 +1,159 @@
 export default class gameScene extends Phaser.Scene {
     constructor() {
         super("gameScene");
-        this.scenePaused = false;
     }
 
     init() {
-        this.player;
-        this.cursors;
-        this.shootKey;
-        this.background;
-        this.bullets;
-        this.obstacles;
-        this.enemyTimer;
-        this.bulletTimer;
         this.score = 0;
         this.timeSurvived = 0;
-        this.scoreText;
-        this.timeText;
-        this.gameOverText;
-        this.winText;
-        this.backgroundMusic;
-        this.shootSound;
-        this.hitSound;
     }
 
     preload() {
-        // Background
-        this.load.image('gameoverBackground', './assets/images/gameoverBackground.png');
-        // Player
-        this.load.image('player', './assets/images/ship.png');
-        // Bullet
-        this.load.image('bullet', './assets/images/bullet.png');
-        // Obstacle
-        this.load.image('obstacle', './assets/images/enemyOne.png');
+        // Load images
+        this.load.image('gSBackground', 'assets/images/gSBackground.png');
+        this.load.image('player', 'assets/images/ship.png');
+        this.load.image('projectile', 'assets/images/bullet.png');
+        this.load.image('obstacle', 'assets/images/enemyOne.png');
+        this.load.image('obstacleTwo', 'assets/images/enemyTwo.png');  // New enemy type
+        this.load.image('obstacleThree', 'assets/images/enemyThree.png');  // New enemy type
+
         // Load audio
-        this.load.audio('backgroundMusic', './assets/audio/backgroundMusic.mp3');
-        this.load.audio('shootSound', './assets/audio/shootSound.wav');
-        this.load.audio('hitSound', './assets/audio/hitSound.wav');
+        this.load.audio('backgroundMusic', 'assets/audio/backgroundMusic.mp3');
+        this.load.audio('shotSound', 'assets/audio/shoot.mp3');
+        this.load.audio('hitSound', 'assets/audio/hit.mp3');
     }
 
     create() {
-        // Scale Background size
-        this.background = this.add.image(0, 0, 'gameoverBackground').setOrigin(0, 0);
-        this.background.setDisplaySize(this.cameras.main.width, this.cameras.main.height);
-    
-        // Player properties
-        this.player = this.physics.add.sprite(400, -50, 'player'); // Start player off-screen above
-        this.player.setCollideWorldBounds(true);
-    
+        // Stop title scene's background audio if it's playing
+        this.sound.stopAll();
+
+        // Background music
+        this.backgroundMusic = this.sound.add('backgroundMusic', { volume: 0.3, loop: true });
+        this.backgroundMusic.play();
+
+        // Background image
+        this.gSBackground = this.add.image(0, 0, 'gSBackground').setOrigin(0, 0);
+        this.gSBackground.setDisplaySize(this.cameras.main.width, this.cameras.main.height);
+
+         // Shot sound
+         this.shot = this.sound.add('shotSound', { volume: 0.2 }); // Adjust volume as needed        
+        
+        // Player setup
+        this.player = this.physics.add.sprite(400, 1100, 'player').setCollideWorldBounds(true);
+
+        // Controls
         this.cursors = this.input.keyboard.createCursorKeys();
         this.shootKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    
-    
-        // Bullet properties
-        this.bullets = this.physics.add.group({
-            classType: Phaser.Physics.Arcade.Image,
-            defaultKey: 'bullet',
-            maxSize: 10
+
+        // Projectiles
+        this.projectiles = this.physics.add.group({
+            classType: Phaser.GameObjects.Sprite,
+            maxSize: -1,
+            runChildUpdate: true
         });
-    
-        // Obstacle properties
+
+        // Obstacles
         this.obstacles = this.physics.add.group();
-    
-        this.physics.add.overlap(this.bullets, this.obstacles, this.hitObstacle, null, this);
-        this.physics.add.overlap(this.player, this.obstacles, this.hitPlayer, null, this);
-    
-        this.scoreText = this.add.text(20, 20, 'Score: ' + this.score, { fontSize: '20px', fill: '#ffffff' });
-        this.timeText = this.add.text(20, 50, 'Time: ' + this.timeSurvived, { fontSize: '20px', fill: '#ffffff' });
-    
-        // Animate player ship entry
-        this.tweens.add({
-            targets: this.player,
-            y: 500, // Destination y-coordinate
-            duration: 1000,
-            ease: 'Power2',
-            onComplete: () => {
-                this.startTimers();
+
+        // Collisions
+        this.physics.add.collider(this.projectiles, this.obstacles, this.destroyObstacle, null, this);
+        this.physics.add.collider(this.player, this.obstacles, this.gameOver, null, this);
+
+        // Score and time UI
+        this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '20px', fill: '#fff' });
+        this.timeText = this.add.text(10, 40, 'Time: 0s', { fontSize: '20px', fill: '#fff' });
+
+        // Timed events
+        this.spawnObstacleTimer = this.time.addEvent({
+            delay: 500, // Increased frequency of spawning enemies
+            callback: this.spawnObstacle,
+            callbackScope: this,
+            loop: true
+        });
+
+        this.updateTimeTimer = this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.timeSurvived += 1;
+                this.timeText.setText(`Time: ${this.timeSurvived}s`);
+                if (this.timeSurvived === 30) { // Win condition: survive 2 minutes
+                    this.winGame();
+                }
+            },
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    shootProjectile() {
+        const projectile = this.projectiles.get(this.player.x, this.player.y - 100, 'projectile');
+        if (projectile) {
+            if (!projectile.active) {
+                projectile.enableBody(true, this.player.x, this.player.y - 50, true, true);
+                projectile.setVelocityY(-800); // Set velocity upwards
+                projectile.setGravityY(0); // Disable gravity for the projectile
+                this.shot.play(); 
             }
-        });
-    
-        // Load and play background music
-        if (!this.sound.get('backgroundMusic').isPlaying) {
-            this.backgroundMusic = this.sound.add('backgroundMusic', { loop: true, volume: 0.5 });
-            this.backgroundMusic.play();
-        }
-    
-        // Load sound effects
-        this.shootSound = this.sound.add('shootSound');
-        this.hitSound = this.sound.add('hitSound');
-    
-        // Resume the scene after everything is set up
-        this.resumeScene();
-    }
-
-    startTimers() {
-        this.enemyTimer = this.time.addEvent({
-            delay: 1000,
-            callback: this.createNewObstacle,
-            callbackScope: this,
-            loop: true
-        });
-
-        this.time.addEvent({
-            delay: 1000,
-            callback: this.updateTimeSurvived,
-            callbackScope: this,
-            loop: true
-        });
-    }
-
-    pauseScene() {
-        this.physics.pause();
-        this.scenePaused = true;
-    }
-
-    resumeScene() {
-        this.physics.resume();
-        this.scenePaused = false;
-    }
-
-    fireBullet() {
-        let bullet = this.bullets.get(this.player.x, this.player.y - 20);
-        if (bullet) {
-            bullet.setActive(true);
-            bullet.setVisible(true);
-            bullet.body.enable = true; // Ensure the bullet is enabled
-            bullet.setPosition(this.player.x, this.player.y - 20);
-            bullet.body.velocity.y = -300;
-            this.shootSound.play();
         }
     }
 
-    createNewObstacle() {
-        let x = Phaser.Math.Between(50, 750);
-        let obstacle = this.obstacles.create(x, 50, 'obstacle');
-        obstacle.setVelocity(0, 100);
-        obstacle.setCollideWorldBounds(true);
-        obstacle.setBounce(1, 1);
-    }
+    spawnObstacle() {
+        const obstacleTypes = ['obstacle', 'obstacleTwo', 'obstacleThree'];
+        for (let i = 0; i < 2; i++) { // Spawn 3 enemies at once
+            const x = Phaser.Math.Between(50, 750);
+            const obstacleType = Phaser.Math.RND.pick(obstacleTypes);
+            const obstacle = this.obstacles.create(x, 0, obstacleType);
+            obstacle.setVelocityY(200);
 
-    hitObstacle(bullet, obstacle) {
-        if (bullet.visible) {
-            bullet.destroy();
+            // Destroy the obstacle when it reaches the bottom of the screen
+            obstacle.checkWorldBounds = true;
+            obstacle.outOfBoundsKill = true;
         }
-        obstacle.destroy();
-        this.hitSound.play();
-        this.score += 10;
-        this.scoreText.setText('Score: ' + this.score);
     }
 
-    hitPlayer(player, obstacle) {
-        this.physics.pause();
-        this.gameOver = true;
-        player.setTint(0xff0000);
+    destroyObstacle(projectile, obstacle) {
+        if (projectile && projectile.active) {
+            // Disable and clear the projectile
+            projectile.destroy(); // Corrected typo here
+ 
+            // Destroy the obstacle
+            obstacle.destroy();
+    
+            // Play hit sound and update score
+            
+            this.score += 50;
+            this.scoreText.setText('Score: ' + this.score);
+    
+            // Check for score-based winning condition
+            if (this.score >= 1000) {
+                this.winGame();
+            }
+        }
+    }
+
+    gameOver(player, obstacle) {
         this.backgroundMusic.stop();
-        this.hitSound.play();
-        this.gameOverText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'Game Over', { fontSize: '64px', fill: '#ff0000' }).setOrigin(0.5);
-        this.time.delayedCall(1, () => {
-            this.scene.restart();
-        });
+        this.scene.start('gameoverScene', { score: this.score, timeSurvived: this.timeSurvived });
     }
 
-    updateTimeSurvived() {
-        if (!this.gameOver) {
-            this.timeSurvived++;
-            this.timeText.setText('Time: ' + this.timeSurvived);
-
-            // Winning condition: survive for 2 minutes (120 seconds)
-            if (this.timeSurvived >= 120) {
-                this.physics.pause();
-                this.backgroundMusic.stop();
-                this.winText = this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2, 'You Win!', { fontSize: '64px', fill: '#00ff00' }).setOrigin(0.5);
-                this.time.delayedCall(2000, () => {
-                    this.scene.restart();
-                });
-            }
-        }
+    winGame() {
+        this.backgroundMusic.stop();
+        this.scene.start('winningScene', { score: this.score, timeSurvived: this.timeSurvived, win: true });
     }
 
     update() {
+        // Player movement
         if (this.cursors.left.isDown) {
-            this.player.setVelocityX(-250);
+            this.player.setVelocityX(-500);
         } else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(250);
+            this.player.setVelocityX(500);
         } else {
             this.player.setVelocityX(0);
         }
-    
+
+        // Shooting
         if (Phaser.Input.Keyboard.JustDown(this.shootKey)) {
-            this.fireBullet();
+            this.shootProjectile();
         }
-    
-        // Add this code to destroy obstacles that have moved off the bottom of the screen
-        this.obstacles.children.each(function(obstacle) {
-            if (obstacle.y > this.cameras.main.height) {
-                obstacle.destroy();
-            }
-        }, this);
     }
 }

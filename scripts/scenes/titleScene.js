@@ -26,7 +26,7 @@ export default class titleScene extends Phaser.Scene {
         this.ship.setOrigin(0.5);
     
         // Load and play background music
-        this.backgroundMusic = this.sound.add('backgroundMusic', { loop: true, volume: 0.5 });
+        this.backgroundMusic = this.sound.add('backgroundMusic', { loop: true, volume: 0.3 });
         if (!this.backgroundMusic.isPlaying && !this.sound.mute) {
             this.backgroundMusic.play();
         }
