@@ -9,7 +9,7 @@ export default class gameoverScene extends Phaser.Scene {
         this.load.image('restartButton', './assets/images/reset.png');
         this.load.image('mainMenuButton', './assets/images/main.png');
         
-        this.load.audio('gameoverSound', './assets/audio/gameoverSound.mp3'); // Replace 'gameoverSound' with your audio file
+        this.load.audio('gameoverSound', './assets/audio/music/gameoverSound.mp3'); // Replace 'gameoverSound' with your audio file
     }
     
     create(data) {
@@ -45,7 +45,7 @@ export default class gameoverScene extends Phaser.Scene {
         });
 
         // Play game over sound
-        const gameoverSound = this.sound.add('gameoverSound');
+        const gameoverSound = this.sound.add('gameoverSound', { volume: 0.2});
         gameoverSound.play();
     }
 }

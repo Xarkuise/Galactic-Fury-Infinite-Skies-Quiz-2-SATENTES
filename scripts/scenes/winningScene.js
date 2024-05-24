@@ -12,7 +12,7 @@ export default class winningScene extends Phaser.Scene {
         // Load the background image
         this.load.image('gSBackground', 'assets/images/gSBackground.png');
         // Load the winning sound
-        this.load.audio('winningSound', 'assets/audio/winningSound.mp3'); // Adjust the path and file type as needed
+        this.load.audio('winningSound', 'assets/audio/music/winningSound.mp3'); // Adjust the path and file type as needed
     }
 
     create() {

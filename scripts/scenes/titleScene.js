@@ -13,7 +13,7 @@ export default class titleScene extends Phaser.Scene {
         this.load.image('creditButton', './assets/images/credit.png');
         this.load.image('quitButton', './assets/images/quit.png');
         // Load audio
-        this.load.audio('backgroundMusic', './assets/audio/backgroundMusic.mp3');
+        this.load.audio('backgroundMusic', './assets/audio/music/backgroundMusic.mp3');
     }
 
     create() {
