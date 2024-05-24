@@ -20,7 +20,7 @@ export default class winningScene extends Phaser.Scene {
         this.add.image(0, 0, 'gSBackground').setOrigin(0);
 
          // Play winning sound
-         let winningSound = this.sound.add('winningSound');
+         let winningSound = this.sound.add('winningSound', { volume: 0.3});
          winningSound.play();
 
         // Display the winning message and score
